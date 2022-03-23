@@ -1,3 +1,4 @@
+import os
 from os import environ
 from pandas import read_sql
 from sqlalchemy import create_engine
@@ -13,10 +14,12 @@ def get_database_connection(driver, host, port, slug, username, password):
 
 
 def get_rt_database_connection():
+    db_name = os.getenv('RT_DB_DATABASE', 'rt_analytics')
+    host = os.getenv('RT_DB_HOST', 'localhost')
     return get_database_connection(driver='mysql+pymysql',
-                                   host='rt-analyticsest-dev-02.it.tufts.edu',
+                                   host=host,
                                    port=3306,
-                                   slug='rt_analytics',
+                                   slug=db_name,
                                    username=environ['RT_DB_USERNAME'],
                                    password=environ['RT_DB_PASSWORD'])
 
