@@ -1,6 +1,6 @@
-from .utils.agol import get_tufts_agol_connection
-from .utils.agol import get_agol_logins
-from .utils.database import extract_sql_as_df
+from ..utils.agol import get_tufts_agol_connection
+from ..utils.agol import get_agol_logins
+from ..utils.database import extract_sql_as_df
 import pandas as pd
 
 

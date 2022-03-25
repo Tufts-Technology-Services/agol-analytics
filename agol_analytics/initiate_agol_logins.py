@@ -1,5 +1,5 @@
-from agol.workflow import generate_agol_logins
-from utils.database import get_rt_database_connection
+from .agol.workflow import generate_agol_logins
+from .utils.database import get_rt_database_connection
 from sqlalchemy.types import NVARCHAR
 from sqlalchemy.types import CHAR
 from sqlalchemy import DateTime
