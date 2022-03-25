@@ -1,5 +1,5 @@
-from agol.workflow import generate_agol_logins
-from utils.database import get_rt_database_connection
+from .agol.workflow import generate_agol_logins
+from .utils.database import get_rt_database_connection
 from datetime import date
 from datetime import timedelta
 import sys
