@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agol-analytics"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
 authors = ["uuusta01 <uku-kaspar.uustalu@tufts.edu>"]
 

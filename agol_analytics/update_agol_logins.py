@@ -9,7 +9,7 @@ def update_agol_logins():
     pr_table = 'pr_fis'
     agol_table = 'agol_logins'
     date_field = 'request_date'
-    date_query = f'SELECT MAX({date_field}) FROM {pr_table};'
+    date_query = f'SELECT MAX({date_field}) FROM {agol_table};'
     with get_rt_database_connection() as con:
         today = date.today()
         last_stored_date = con.execute(date_query).scalar_one_or_none()
