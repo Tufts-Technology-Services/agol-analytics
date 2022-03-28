@@ -1,27 +1,31 @@
 from .agol.workflow import generate_agol_logins
 from .utils.database import get_rt_database_connection
-from datetime import date
-from datetime import timedelta
+from analytics_utils import get_semester_start
+from datetime import date, timedelta
 import sys
 
 
-def main():
+def update_agol_logins():
     pr_table = 'pr_fis'
     agol_table = 'agol_logins'
-    max_query = 'SELECT MAX({field}) FROM {table};'
-    date_query = max_query.format(field='request_date', table=agol_table)
-    con = get_rt_database_connection()
-    start_date = con.execute(date_query).scalar_one() + timedelta(days=1)
-    end_date = date.today() - timedelta(days=1)
-    if start_date <= end_date:
-        df = generate_agol_logins(con, pr_table, start_date, end_date)
-        df.to_sql(name=agol_table,
-                  con=con,
-                  if_exists='append',
-                  index=False)
-    con.close()
+    date_field = 'request_date'
+    date_query = f'SELECT MAX({date_field}) FROM {pr_table};'
+    with get_rt_database_connection() as con:
+        today = date.today()
+        last_stored_date = con.execute(date_query).scalar_one_or_none()
+        if last_stored_date is None:
+            start_date = get_semester_start(today)
+        else:
+            start_date = last_stored_date + timedelta(days=1)
+        end_date = today - timedelta(days=1)
+        if start_date <= end_date:
+            df = generate_agol_logins(con, pr_table, start_date, end_date)
+            df.to_sql(name=agol_table,
+                      con=con,
+                      if_exists='append',
+                      index=False)
     return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(update_agol_logins())
