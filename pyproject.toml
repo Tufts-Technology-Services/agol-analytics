@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "agol-analytics"
-version = "0.1.5"
+version = "0.1.6"
 description = ""
-authors = ["uuusta01 <uku-kaspar.uustalu@tufts.edu>"]
+authors = ["uuusta01 <uku-kaspar.uustalu@tufts.edu>", "cbarne02 <christopher.barnett@tufts.edu>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -1,27 +1,30 @@
 import os
 from os import environ
 from pandas import read_sql
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 
 
-def get_database_connection(driver, host, port, slug, username, password):
+def get_database_engine(driver, host, port, slug, username, password):
     conn_str = '{driver}://{username}:{password}@{host}:{port}/{slug}'
-    engine = create_engine(conn_str.format(driver=driver, username=username,
-                                           password=password, host=host,
-                                           port=port, slug=slug))
-    connection = engine.connect()
-    return connection
+    return create_engine(conn_str.format(driver=driver, username=username,
+                                         password=password, host=host,
+                                         port=port, slug=slug))
 
 
-def get_rt_database_connection():
+def get_rt_database_engine():
     db_name = os.getenv('RT_DB_DATABASE', 'rt_analytics')
     host = os.getenv('RT_DB_HOST', 'localhost')
-    return get_database_connection(driver='mysql+pymysql',
-                                   host=host,
-                                   port=3306,
-                                   slug=db_name,
-                                   username=environ['RT_DB_USERNAME'],
-                                   password=environ['RT_DB_PASSWORD'])
+    return get_database_engine(driver='mysql+pymysql',
+                               host=host,
+                               port=3306,
+                               slug=db_name,
+                               username=environ['RT_DB_USERNAME'],
+                               password=environ['RT_DB_PASSWORD'])
+
+
+def has_table(table):
+    insp = get_rt_database_engine()
+    return insp.has_table(table)
 
 
 def extract_sql_as_df(con, table, fields):
