@@ -1,6 +1,10 @@
 from .agol.workflow import generate_agol_logins
 from .utils.database import get_rt_database_engine, has_table
 from analytics_utils import get_semester_start
+from sqlalchemy.types import NVARCHAR
+from sqlalchemy.types import CHAR
+from sqlalchemy import DateTime
+from sqlalchemy import Date
 from datetime import date, timedelta
 import sys
 
@@ -24,7 +28,24 @@ def update_agol_logins():
             df.to_sql(name=agol_table,
                       con=con,
                       if_exists='append',
-                      index=False)
+                      index=False,
+                      dtype={'request_id': CHAR(32),
+                             'request_date': Date(),
+                             'request_time': DateTime(),
+                             'request_slug': NVARCHAR(255),
+                             'application_id': NVARCHAR(255),
+                             'pr_identity_prid': CHAR(9),
+                             'user_primary_affiliation': NVARCHAR(25),
+                             'user_primary_division': NVARCHAR(255),
+                             'user_primary_dept_prog': NVARCHAR(255),
+                             'user_primary_campus': NVARCHAR(25),
+                             'user_faculty': CHAR(1),
+                             'user_faculty_division': NVARCHAR(255),
+                             'user_faculty_dept': NVARCHAR(255),
+                             'pr_sis_primmajor1': NVARCHAR(255),
+                             'pr_sis_derived_major': NVARCHAR(255),
+                             'pr_sis_derived_degree': NVARCHAR(25)}
+                      )
     return 0
 
 
