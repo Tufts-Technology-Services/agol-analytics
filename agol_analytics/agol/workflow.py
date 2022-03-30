@@ -6,12 +6,13 @@ import pandas as pd
 
 def clean_agol_logins(df):
     df = (df.drop(columns=['idType', 'orgId', 'action', 'ip'])
-          .rename(columns={'request': 'request_slug',
-                           'reqId': 'request_id',
-                           'appId': 'application_id'}))
-    df['request_time'] = (pd.to_datetime(df.created, unit='ms', utc=True)
-                          .dt.tz_convert(tz='EST').dt.strftime('%Y-%m-%d %H:%M:%S'))
-    df['request_date'] = df.request_time.str.slice(start=0, stop=10)
+            .rename(columns={'request': 'request_slug',
+                             'reqId': 'request_id',
+                             'appId': 'application_id',
+                             'created': 'request_time'}))
+    df['request_date'] = (pd.to_datetime(df.request_time, unit='ms', utc=True)
+                            .dt.tz_convert(tz='EST')
+                            .dt.strftime('%Y-%m-%d'))
     df['id'] = df.id.str.rstrip('_TuftsGIS')
     return df
 

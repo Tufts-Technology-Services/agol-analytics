@@ -1,8 +1,8 @@
 from .agol.workflow import generate_agol_logins
 from .utils.database import get_rt_database_engine
 from sqlalchemy.types import NVARCHAR
+from sqlalchemy.types import BIGINT
 from sqlalchemy.types import CHAR
-from sqlalchemy import DateTime
 from sqlalchemy import Date
 import sys
 
@@ -20,7 +20,7 @@ def main():
               index=False,
               dtype={'request_id': CHAR(32),
                      'request_date': Date(),
-                     'request_time': DateTime(),
+                     'request_time': BIGINT(),
                      'request_slug': NVARCHAR(255),
                      'application_id': NVARCHAR(255),
                      'pr_identity_prid': CHAR(9),
