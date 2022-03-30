@@ -10,7 +10,7 @@ def clean_agol_logins(df):
                            'reqId': 'request_id',
                            'appId': 'application_id'}))
     df['request_time'] = (pd.to_datetime(df.created, unit='ms', utc=True)
-                          .dt.tz_convert(tz='EST')).dt.floor("S")
+                          .dt.tz_convert(tz='EST').dt.strftime('%Y-%m-%d %H:%M:%S'))
     df['request_date'] = df.request_time.dt.date
     df['id'] = df.id.str.rstrip('_TuftsGIS')
     return df
