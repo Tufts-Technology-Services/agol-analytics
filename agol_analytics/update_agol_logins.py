@@ -10,7 +10,7 @@ import sys
 
 
 def update_agol_logins():
-    pr_table = 'pr_fis'
+    pr_table = 'pr_fis_vw'
     agol_table = 'agol_logins'
     date_field = 'request_date'
     date_query = f'SELECT MAX({date_field}) FROM {agol_table};'
