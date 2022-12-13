@@ -15,14 +15,15 @@ def get_tufts_agol_connection():
 
 def get_single_day_agol_logins(gis, date):
     assert type(date) is datetime
-    to_date = date + timedelta(days=1) - timedelta(milliseconds=1)
+    to_date = date + timedelta(days=1) - timedelta(minutes=1)
     print(date, to_date)
     return gis.admin.history(start_date=date,
                              to_date=to_date,
                              num=-1,
                              all_events=True,
                              actions='login',
-                             data_format='df')
+                             save_folder=environ['DATADIR'],
+                             data_format='csv')
 
 
 def get_datetime(input):
@@ -42,5 +43,5 @@ def get_agol_logins(gis, start_date, end_date):
     assert start_date <= end_date
     dates = [start_date + timedelta(days=x) for x
              in range((end_date - start_date).days + 1)]
-    data = [get_single_day_agol_logins(gis, date) for date in dates]
+    data = [pd.read_csv(get_single_day_agol_logins(gis, date), index=False) for date in dates]
     return pd.concat(data)
