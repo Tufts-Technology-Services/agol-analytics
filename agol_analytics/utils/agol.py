@@ -45,5 +45,6 @@ def get_agol_logins(gis, start_date, end_date):
     assert start_date <= end_date
     dates = [start_date + timedelta(days=x) for x
              in range((end_date - start_date).days + 1)]
+    print(dates)
     data = [get_single_day_agol_logins(gis, date) for date in dates]
     return pd.concat(data)
