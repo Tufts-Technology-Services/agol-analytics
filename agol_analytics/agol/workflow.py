@@ -28,12 +28,13 @@ def get_pr_table(con, pr_table):
               'user_faculty_division',
               'user_faculty_dept',
               'pr_sis_primmajor1',
-              'pr_sis_derived_major',
+              'pr_sis_primmajor1_cl',
               'pr_sis_derived_degree']
     return extract_sql_as_df(con=con, table=pr_table, fields=fields)
 
 
 def join_and_organize_logins(login_df, pr_df):
+    pr_df = pr_df.rename(columns={'pr_sis_primmajor1_cl': 'pr_sis_derived_major'})
     join = login_df.merge(right=pr_df,
                           how='inner',
                           left_on='id',
