@@ -30,10 +30,6 @@ def get_datetime(input):
         return datetime(year=input.year,
                         month=input.month,
                         day=input.day,
-                        hour=0,
-                        minute=0,
-                        second=0,
-                        microsecond=0,
                         tzinfo=timezone('EST'))
     return (datetime.strptime(input, datetime_fmt_str)
                     .replace(tzinfo=timezone('EST')))
