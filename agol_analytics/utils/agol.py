@@ -5,6 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 from pytz import timezone
 import pandas as pd
+import time
 
 
 def get_tufts_agol_connection():
@@ -14,6 +15,7 @@ def get_tufts_agol_connection():
 
 
 def get_single_day_agol_logins(gis, date):
+    time.sleep(0.3)
     assert type(date) is datetime
     to_date = date + timedelta(days=1) - timedelta(milliseconds=1)
     print(date, to_date)
