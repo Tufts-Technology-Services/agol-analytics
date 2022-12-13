@@ -19,7 +19,7 @@ def get_single_day_agol_logins(gis, date):
     print(date, to_date)
     return gis.admin.history(start_date=date,
                              to_date=to_date,
-                             num=10000,
+                             num=-1,
                              all_events=True,
                              actions='login',
                              data_format='df')
