@@ -8,7 +8,7 @@ def clean_agol_logins(df):
     df = (df.drop(columns=['idType', 'orgId', 'action', 'ip'])
             .rename(columns={'request': 'request_slug',
                              'reqId': 'request_id',
-                             'appId': 'application_id',
+                             'clientId': 'application_id',
                              'created': 'request_time'}))
     df['request_date'] = (pd.to_datetime(df.request_time, unit='ms', utc=True)
                             .dt.tz_convert(tz='EST')
