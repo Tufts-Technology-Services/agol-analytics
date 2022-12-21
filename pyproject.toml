@@ -5,8 +5,8 @@ description = ""
 authors = ["uuusta01 <uku-kaspar.uustalu@tufts.edu>", "cbarne02 <christopher.barnett@tufts.edu>"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.10"
-arcgis = "^2.0.1"
+python = ">=3.9,<3.11"
+arcgis = "^2.0"
 pandas = "^1.5.2"
 SQLAlchemy = "^1.4.32"
 analytics-utils = {git = "git@gitlab.it.tufts.edu:rt-analytics/analytics-utils.git", rev = "main"}
