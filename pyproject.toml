@@ -5,11 +5,11 @@ description = ""
 authors = ["uuusta01 <uku-kaspar.uustalu@tufts.edu>", "cbarne02 <christopher.barnett@tufts.edu>"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
-arcgis = "^2.0"
-pandas = "^2.0.0rc0"
-SQLAlchemy = "^2.0.3"
+python = ">=3.9,<3.10"
+pandas = "^2.0.0rc1"
+SQLAlchemy = "^2.0.6"
 analytics-utils = {git = "git@gitlab.it.tufts.edu:rt-analytics/analytics-utils.git", rev = "main"}
+arcgis = "^2.1.0.3"
 
 [tool.poetry.dev-dependencies]
 
