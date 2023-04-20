@@ -23,7 +23,7 @@ def get_rt_database_engine():
 
 
 def has_table(table):
-    insp = get_rt_database_engine()
+    insp = inspect(get_rt_database_engine())
     return insp.has_table(table)
 
 
