@@ -28,7 +28,7 @@ def get_pr_table(con, pr_table):
               'user_faculty_division',
               'user_faculty_dept',
               'pr_sis_primmajor1',
-              'pr_sis_primmajor1_cl',
+              'pr_sis_derived_major',
               'pr_sis_derived_degree']
     return extract_sql_as_df(con=con, table=pr_table, fields=fields)
 
