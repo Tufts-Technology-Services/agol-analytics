@@ -5,6 +5,7 @@ from sqlalchemy.types import NVARCHAR
 from sqlalchemy.types import BIGINT
 from sqlalchemy.types import CHAR
 from sqlalchemy import Date
+from sqlalchemy import text
 from datetime import date, timedelta
 import sys
 
@@ -19,7 +20,7 @@ def update_agol_logins():
         start_date = get_semester_start(today)
 
         if has_table(agol_table):
-            last_stored_date = con.execute(date_query).scalar_one_or_none()
+            last_stored_date = con.execute(text(date_query)).scalar_one_or_none()
             if last_stored_date is not None:
                 start_date = last_stored_date + timedelta(days=1)
         end_date = today - timedelta(days=1)
