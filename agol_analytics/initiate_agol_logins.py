@@ -4,6 +4,7 @@ from sqlalchemy.types import NVARCHAR
 from sqlalchemy.types import BIGINT
 from sqlalchemy.types import CHAR
 from sqlalchemy import Date
+from sqlalchemy import text
 import sys
 
 
@@ -34,8 +35,9 @@ def main():
                      'pr_sis_primmajor1': NVARCHAR(255),
                      'pr_sis_derived_major': NVARCHAR(255),
                      'pr_sis_derived_degree': NVARCHAR(25)})
-    command = 'ALTER TABLE {table} ADD PRIMARY KEY ({key})'
-    con.execute(command.format(table=agol_table, key='request_id'))
+    key = 'request_id'
+    command = f'ALTER TABLE {agol_table} ADD PRIMARY KEY ({key})'
+    con.execute(text(command))
     con.close()
     return 0
 
