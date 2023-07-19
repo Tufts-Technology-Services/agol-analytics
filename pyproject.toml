@@ -6,10 +6,10 @@ authors = ["uuusta01 <uku-kaspar.uustalu@tufts.edu>", "cbarne02 <christopher.bar
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
-pandas = "^2.0.0rc1"
-SQLAlchemy = "^2.0.6"
+pandas = "^2.0.1"
 analytics-utils = {git = "git@gitlab.it.tufts.edu:rt-analytics/analytics-utils.git", rev = "main"}
-arcgis = "^2.1.0.3"
+database-interface = {git = "git@gitlab.it.tufts.edu:rt-analytics/database-interface.git", rev = "main"}
+requests = "^2.31.0"
 
 [tool.poetry.dev-dependencies]
 

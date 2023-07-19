@@ -1,54 +1,65 @@
-from .agol.workflow import generate_agol_logins
-from .utils.database import get_rt_database_engine, has_table
+from database_interface import DatabaseInterface
+from .agol.workflow import generate_date_range, process_logins
 from analytics_utils import get_semester_start
-from sqlalchemy.types import NVARCHAR
-from sqlalchemy.types import BIGINT
-from sqlalchemy.types import CHAR
-from sqlalchemy import Date
-from sqlalchemy import text
 from datetime import date, timedelta
-import sys
+import os
+
+import logging
+
+from .utils import ArcGISReportClient
+
+LOG = logging.getLogger(__name__)
 
 
-def update_agol_logins():
+def ensure_table(db_interface: DatabaseInterface) -> None:
+    sql = os.path.join(os.path.abspath(os.path.dirname(__file__)), './sql/create_agol_logins.sql')
+    LOG.info(f'ensuring table from {sql}')
+    db_interface.execute_sql_file(sql)
+
+
+def update_agol_logins(db_interface: DatabaseInterface, agol_user:str, agol_pass:str) -> None:
+    ensure_table(db_interface)
+
     pr_table = 'pr_fis_vw'
     agol_table = 'agol_logins'
     date_field = 'request_date'
-    date_query = f'SELECT MAX({date_field}) FROM {agol_table};'
-    with get_rt_database_engine().connect() as con:
-        today = date.today()
-        start_date = get_semester_start(today)
 
-        if has_table(agol_table):
-            last_stored_date = con.execute(text(date_query)).scalar_one_or_none()
-            if last_stored_date is not None:
-                start_date = last_stored_date + timedelta(days=1)
-        end_date = today - timedelta(days=1)
-        if start_date <= end_date:
-            df = generate_agol_logins(con, pr_table, start_date, end_date)
-            df.to_sql(name=agol_table,
-                      con=con,
-                      if_exists='append',
-                      index=False,
-                      dtype={'request_id': CHAR(32),
-                             'request_date': Date(),
-                             'request_time': BIGINT(),
-                             'request_slug': NVARCHAR(255),
-                             'application_id': NVARCHAR(255),
-                             'pr_identity_prid': CHAR(9),
-                             'user_primary_affiliation': NVARCHAR(25),
-                             'user_primary_division': NVARCHAR(255),
-                             'user_primary_dept_prog': NVARCHAR(255),
-                             'user_primary_campus': NVARCHAR(25),
-                             'user_faculty': CHAR(1),
-                             'user_faculty_division': NVARCHAR(255),
-                             'user_faculty_dept': NVARCHAR(255),
-                             'pr_sis_primmajor1': NVARCHAR(255),
-                             'pr_sis_derived_major': NVARCHAR(255),
-                             'pr_sis_derived_degree': NVARCHAR(25)}
-                      )
-    return 0
+    today = date.today()
+    start_date = get_semester_start(today)
+    """
+    for historical values:
+    start_date = '2021-07-01'
+    end_date = '2021-12-31'
+    pr_table = 'pr_fis_2021spring'
+    """
 
+    last_stored_date = db_interface.check_last_date(date_field, agol_table)
+    if last_stored_date is not None:
+        start_date = last_stored_date + timedelta(days=1)
 
-if __name__ == '__main__':
-    sys.exit(update_agol_logins())
+    end_date = today - timedelta(days=1)
+
+    if start_date <= end_date:
+        fields = ['pr_identity_utln',
+                  'pr_identity_prid',
+                  'user_primary_affiliation',
+                  'user_primary_division',
+                  'user_primary_dept_prog',
+                  'user_primary_campus',
+                  'user_faculty',
+                  'user_faculty_division',
+                  'user_faculty_dept',
+                  'pr_sis_primmajor1',
+                  'pr_sis_derived_major',
+                  'pr_sis_derived_degree']
+        pr_df = db_interface.read_df(pr_table, cols=fields)
+
+        cl = ArcGISReportClient()
+        cl.get_token(username=agol_user, passwd=agol_pass)
+
+        dates = generate_date_range(start_date, end_date)
+        login_data = [(cl.get_single_day_agol_logins(d)) for d in dates]
+        login_df = process_logins(login_data, pr_df)
+
+        LOG.info(f'appending agol login data from {start_date} to {end_date}')
+        db_interface.append_df(login_df, agol_table)

@@ -1,7 +1,12 @@
-from ..utils.agol import get_tufts_agol_connection
-from ..utils.agol import get_agol_logins
-from ..utils.database import extract_sql_as_df
 import pandas as pd
+from pytz import timezone
+from datetime import datetime, timedelta, date
+
+
+def process_logins(df_list, pr_df):
+    df  = pd.concat(df_list).drop_duplicates(subset=['reqId'])
+    df = clean_agol_logins(df)
+    return join_and_organize_logins(login_df=df, pr_df=pr_df)
 
 
 def clean_agol_logins(df):
@@ -17,24 +22,7 @@ def clean_agol_logins(df):
     return df
 
 
-def get_pr_table(con, pr_table):
-    fields = ['pr_identity_utln',
-              'pr_identity_prid',
-              'user_primary_affiliation',
-              'user_primary_division',
-              'user_primary_dept_prog',
-              'user_primary_campus',
-              'user_faculty',
-              'user_faculty_division',
-              'user_faculty_dept',
-              'pr_sis_primmajor1',
-              'pr_sis_derived_major',
-              'pr_sis_derived_degree']
-    return extract_sql_as_df(con=con, table=pr_table, fields=fields)
-
-
 def join_and_organize_logins(login_df, pr_df):
-    pr_df = pr_df.rename(columns={'pr_sis_primmajor1_cl': 'pr_sis_derived_major'})
     join = login_df.merge(right=pr_df,
                           how='inner',
                           left_on='id',
@@ -57,8 +45,23 @@ def join_and_organize_logins(login_df, pr_df):
                'pr_sis_derived_degree']
     return join[columns]
 
+def get_datetime(query_date: any):
+    datetime_fmt_str = '%Y-%m-%d'
+    if type(query_date) is date:
+        return datetime(year=query_date.year,
+                        month=query_date.month,
+                        day=query_date.day,
+                        tzinfo=timezone('EST'))
+    return (datetime.strptime(query_date, datetime_fmt_str)
+            .replace(tzinfo=timezone('EST')))
 
-def generate_agol_logins(con, pr_table, start_date, end_date):
-    gis = get_tufts_agol_connection()
-    df = clean_agol_logins(get_agol_logins(gis, start_date, end_date))
-    return join_and_organize_logins(df, get_pr_table(con, pr_table))
+
+def generate_date_range(start_date, end_date):
+    start_date = get_datetime(start_date)
+    end_date = get_datetime(end_date)
+    assert start_date <= end_date
+    return [start_date + timedelta(days=x) for x
+             in range((end_date - start_date).days + 1)]
+
+
+
