@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS agol_logins (
+    request_id                  varchar(32) NOT NULL,
+    request_date                DATE NOT NULL,
+    request_time                BIGINT NOT NULL,
+    request_slug                VARCHAR(100) NOT NULL,
+    application_id              VARCHAR(100) NOT NULL,
+    pr_identity_prid            CHAR(9) NOT NULL,
+	user_primary_affiliation    VARCHAR(25) NOT NULL,
+	user_pr_status              VARCHAR(1),
+	user_faculty                CHAR(1),
+	user_faculty_division       VARCHAR(255),
+	user_faculty_dept           VARCHAR(255),
+    user_primary_division       VARCHAR(255),
+    user_primary_dept_prog      VARCHAR(255),
+    user_primary_campus         VARCHAR(25),
+    pr_sis_primmajor1           VARCHAR(255),
+    pr_sis_derived_major        VARCHAR(255),
+    pr_sis_derived_degree       VARCHAR(25),
+    PRIMARY KEY (request_id)
+);
