@@ -1,8 +1,9 @@
 from database_interface import DatabaseInterface
-from .agol.workflow import generate_date_range, process_logins
 from analytics_utils import get_semester_start
 from datetime import date, timedelta
 import os
+
+from .agol.workflow import generate_date_range, process_logins
 
 import logging
 
