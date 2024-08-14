@@ -33,7 +33,7 @@ class ArcGISReportClient:
             'token': self.token,
             'fromDate': ArcGISReportClient.get_timestamp(single_date),
             'toDate': ArcGISReportClient.get_timestamp(single_date + timedelta(days=1)),
-            'num': 100,
+            'num': 10000, # some large number that we should never reach
             'f': 'csv'
         }
         r = requests.get(endpoint, params=params)
