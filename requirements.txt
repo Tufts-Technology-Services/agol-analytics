@@ -1,10 +1,4 @@
-#pip install --no-deps arcgis==2.3.1 # must install this manually. --no-deps not supported in pip requirements.txt
-pandas>=2.2.0
-pytz==2024.1
-requests>=2.31.0 # required by arcgis
-requests-toolbelt # required by arcgis
-requests-ntlm # required by arcgis
-six==1.16.*   # required by arcgis
-ujson>=3 # required by arcgis
+pandas>=2.1.2
+requests>=2.31.0
 database-interface @ git+ssh://github.com/Tufts-Technology-Services/analytics-database-interface.git
 analytics-utils @ git+ssh://github.com/Tufts-Technology-Services/analytics-utils.git

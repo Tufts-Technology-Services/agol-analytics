@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 import pandas as pd
 import io
 
+class AgolTokenError(Exception):
+    """ArcGIS Online didn't issue a token, e.g. because the credentials were rejected."""
+
+
 class ArcGISReportClient:
     token = None
 
@@ -20,10 +24,15 @@ class ArcGISReportClient:
         r = requests.post(path.join(self.api_base, 'generateToken'), data=request_body)
         r.raise_for_status()
         resp = r.json()
+        # AGOL answers a failed login with HTTP 200 and {"error": {"code", "message", "details"}}
+        if 'token' not in resp:
+            error = resp.get('error', {})
+            reason = '; '.join([error.get('message', 'no token in the response')] + error.get('details', []))
+            raise AgolTokenError(f"couldn't get an ArcGIS Online token for {username}: {reason}")
         self.token = resp['token']
 
     def get_single_day_agol_logins(self, single_date: datetime):
-        assert type(single_date) is datetime
+        assert isinstance(single_date, datetime)  # includes pendulum's DateTime
 
         endpoint = path.join(self.api_base, 'portals/self/history')
         params = {

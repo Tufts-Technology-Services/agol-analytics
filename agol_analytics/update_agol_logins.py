@@ -51,6 +51,7 @@ def update_agol_logins(db_interface: DatabaseInterface, agol_user:str, agol_pass
         fields = ['pr_identity_utln',
                   'pr_identity_prid',
                   'user_primary_affiliation',
+                  'user_pr_status',
                   'user_primary_division',
                   'user_primary_dept_prog',
                   'user_primary_campus',

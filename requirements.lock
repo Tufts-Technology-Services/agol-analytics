@@ -1,5 +1,4 @@
 analytics-utils @ git+ssh://git@github.com/Tufts-Technology-Services/analytics-utils.git@20d23a1d588157610c8a2d3925c307e78f9e8a41
-arcgis==2.3.0.3
 certifi==2024.7.4
 charset-normalizer==3.3.2
 database-interface @ git+ssh://git@github.com/Tufts-Technology-Services/analytics-database-interface.git@ee3ffcf46a2770abb2e03676def3cf9ab1772f7f

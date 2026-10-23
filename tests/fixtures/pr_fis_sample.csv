@@ -1,0 +1,6 @@
+pr_identity_utln,pr_identity_prid,user_primary_affiliation,user_pr_status,user_primary_division,user_primary_dept_prog,user_primary_campus,user_faculty,user_faculty_division,user_faculty_dept,pr_sis_primmajor1,pr_sis_derived_major,pr_sis_derived_degree
+u780c49f,139785198253824202,student,A,Engineering,Civil & Envir Engineering,Medford,N,,,Civil Engineering (BSCE),Civil Engineering,BSCE
+uc704b9c,751946314132421451,student,A,Arts & Sciences,Community Health,Medford,N,,,Community Health (BA),Community Health,BA
+ucf0bd48,736091197904316654,faculty,A,Arts & Sciences,UEP,Medford,Y,Arts & Sciences,UEP,,,
+ud9c6f06,787941989577382587,student,A,Fletcher,International Economics,Medford,N,,,International Economics,,
+uf98345f,905122191042641017,student,A,Engineering,Electrical & Computer Engineering,Medford,N,,,Electrical Engineering (BSEE),Electrical Engineering,BSEE
