@@ -55,8 +55,35 @@ logins = join_and_organize_logins(clean_agol_logins(history), pr_df)
 - `get_single_day_agol_logins(day)` requests the portal's `login` history as CSV, from `day` to
   the same time the next day. It takes a timezone-aware `datetime`, including pendulum's;
   `get_datetime(date)` gives midnight Eastern.
-- One request returns at most 10,000 logins. More than that in a day would be dropped without a
-  warning.
+- AGOL returns at most 10,000 logins per request, oldest first. Asking for more doesn't help, and
+  the CSV format ignores `start`. So the client asks again from the time of the last login so far,
+  dropping the repeats, until a request brings nothing new. A normal day takes two requests. Busy
+  days do pass 10,000: on 2026-10-20 one account's ArcGIS Pro token requests did.
+- AGOL sends some errors, such as an invalid token, as JSON with HTTP 200 even when CSV was asked
+  for. Those raise `AgolDataError` with AGOL's code and message. Others come back as HTTP errors.
+- A day with no logins comes back as just the header line, which gives an empty table.
+
+### Validation (`agol_analytics.validation`)
+`check_agol_history(history, from_date, to_date, raw_data_path=None)` checks a day's history before
+any processing, so changes at AGOL get noticed. `update_agol_logins` runs it on every day, and so
+does the Airflow DAG's extract task.
+- Errors raise `AgolDataError`:
+  - a column the processing uses (`id`, `created`, `request`, `reqId`, `clientId`) is missing;
+  - `created` isn't whole epoch milliseconds;
+  - `reqId` or `id` is empty;
+  - an action other than `login`.
+- Warnings are logged and the run carries on:
+  - a new column, or a missing column that cleaning drops anyway;
+  - a day with no logins;
+  - logins outside the requested window, or out of time order (the paging relies on the order);
+  - repeated `reqId`s or empty `clientId`s;
+  - usernames without the `_TuftsGIS` suffix. A few dozen logins a day is normal; those users get
+    no PR details.
+- With `raw_data_path`, the report is saved next to the raw file as `<raw file>.validation.json`,
+  before raising. Reports quote request IDs, never usernames or IP addresses.
+
+`scripts/probe_agol_history.py` checks these assumptions against the live portal (see its
+docstring). Its summary is safe to share; its `raw/` folder isn't.
 
 ### Dates
 All dates are Tufts local time (`America/New_York`, with daylight saving):
@@ -96,6 +123,10 @@ The sample data in `tests/fixtures/` is sanitized (pseudonymized usernames, IDs 
 addresses). Nothing in the tests reaches ArcGIS Online or a database.
 
 ## Changes in 0.2.0
+- Days with more than 10,000 logins are fetched in full. Before, everything after the 10,000th
+  login of a day was lost without a warning.
+- AGOL's history is validated before processing (see "Validation"). Error replies raise
+  `AgolDataError` instead of being read as CSV.
 - No longer depends on the `arcgis` package; the client calls the REST API with `requests`.
 - Dates use `America/New_York` with daylight saving, instead of a fixed `EST` zone. The old
   pytz-based midnight was 18 minutes off, which shifted each day's query window.

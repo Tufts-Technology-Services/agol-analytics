@@ -1,0 +1,2 @@
+# AGOL sends its history CSV with CRLF line endings; keep the fixtures as AGOL sends them
+tests/fixtures/agol_history_sample.csv -text

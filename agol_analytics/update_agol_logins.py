@@ -8,6 +8,8 @@ from .agol.workflow import generate_date_range, process_logins
 import logging
 
 from .utils import ArcGISReportClient
+from .utils.agol import history_window
+from .validation import check_agol_history
 
 LOG = logging.getLogger(__name__)
 
@@ -20,9 +22,15 @@ def ensure_table(db_interface: DatabaseInterface) -> None:
 
 
 def get_login_data(agol_user:str, agol_pass:str, dates: list) -> list:
+    """each day's login history, checked; raises AgolDataError on the first day that can't be processed"""
     cl = ArcGISReportClient()
     cl.get_token(username=agol_user, passwd=agol_pass)
-    return [(cl.get_single_day_agol_logins(d)) for d in dates]
+    login_data = []
+    for d in dates:
+        history = cl.get_single_day_agol_logins(d)
+        check_agol_history(history, *history_window(d))
+        login_data.append(history)
+    return login_data
 
 
 def update_agol_logins(db_interface: DatabaseInterface, agol_user:str, agol_pass:str) -> None:

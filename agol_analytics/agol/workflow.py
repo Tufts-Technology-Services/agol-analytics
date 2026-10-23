@@ -37,7 +37,8 @@ def clean_agol_logins(df):
     rename the AGOL history columns, date each login in Eastern time, strip the _TuftsGIS
     suffix from the username in ``id``, and keep one row per request
     """
-    df = (df.drop(columns=['idType', 'orgId', 'action', 'ip'])
+    # errors='ignore': these aren't used, and validation warns if they go missing
+    df = (df.drop(columns=['idType', 'orgId', 'action', 'ip'], errors='ignore')
             .rename(columns={'request': 'request_slug',
                              'reqId': 'request_id',
                              'clientId': 'application_id',

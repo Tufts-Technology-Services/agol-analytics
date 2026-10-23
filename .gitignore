@@ -145,3 +145,6 @@ cython_debug/
 CLAUDE.md
 CLAUDE.local.md
 .claude/
+
+# probe output (scripts/probe_agol_history.py); raw/ holds real usernames
+tmp_data/

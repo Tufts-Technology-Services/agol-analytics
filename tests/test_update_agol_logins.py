@@ -127,3 +127,19 @@ def test_the_table_is_ensured_on_every_run(monkeypatch, agol_client):
     db = FakeAgolDatabase(last_stored_date=SAMPLE_DAY)
     run_on(monkeypatch, date(2026, 10, 22), db)
     assert len(db.sql_files_run) == 1
+
+
+def test_a_day_that_fails_validation_stops_the_run_before_anything_is_stored(monkeypatch, agol_client):
+    from agol_analytics.validation import AgolDataError
+
+    def history_without_request_ids(self, single_date):
+        self.days_requested.append(single_date)
+        return load_login_history().drop(columns=["reqId"])
+
+    monkeypatch.setattr(FakeReportClient, "get_single_day_agol_logins", history_without_request_ids)
+    db = FakeAgolDatabase(last_stored_date=date(2026, 10, 19))
+
+    with pytest.raises(AgolDataError, match="missing column"):
+        run_on(monkeypatch, date(2026, 10, 22), db)
+    assert db.appended == []
+    assert days_requested() == [date(2026, 10, 20)]

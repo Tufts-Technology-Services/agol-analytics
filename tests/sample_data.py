@@ -2,11 +2,17 @@
 from pathlib import Path
 
 import pandas as pd
+import requests
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 # 68 logins on 2026-10-21 by 6 users: u780c49f and uf98345f end in letters of '_TuftsGIS';
-# u379c89f isn't in pr_fis and its id has no _TuftsGIS suffix
+# u379c89f isn't in pr_fis and its id has no _TuftsGIS suffix.
+# Edited to match what the live portal sent in October 2026 (scripts/probe_agol_history.py): CRLF
+# line endings; actor holds the (pseudonymized) username; rows 10 and 40 have API-key `data` JSON;
+# row 20 has no ip; rows 30 and 31 share a millisecond; and a few of the rarer request types and
+# clientIds, including an ip.<address> one.
+SAME_MILLISECOND_ROWS = (30, 31)
 USERS_ENDING_IN_SUFFIX_LETTERS = {"u780c49f": 15, "uf98345f": 10}
 USER_NOT_IN_PR_FIS = "u379c89f"
 
@@ -32,4 +38,4 @@ class FakeHttpResponse:
 
     def raise_for_status(self):
         if self.status_code >= 400:
-            raise RuntimeError(f"HTTP {self.status_code}")
+            raise requests.HTTPError(f"HTTP {self.status_code}", response=self)
