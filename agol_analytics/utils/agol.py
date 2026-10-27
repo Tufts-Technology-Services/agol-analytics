@@ -1,4 +1,5 @@
 from os import path
+import calendar
 import requests
 from datetime import datetime, timedelta
 import pandas as pd
@@ -49,7 +50,6 @@ class ArcGISReportClient:
         """
         assert isinstance(single_date, datetime)  # includes pendulum's DateTime
         from_date, to_date = history_window(single_date)
-        start_ms = ArcGISReportClient.get_timestamp(from_date)
         pages = []
         seen_request_ids: set = set()
         page_start = from_date
@@ -66,7 +66,9 @@ class ArcGISReportClient:
             last_created = pd.to_numeric(page['created'], errors='coerce').max()
             if pd.isna(last_created):
                 break  # validation reports the unreadable times
-            page_start = from_date + timedelta(milliseconds=int(last_created) - start_ms)
+            # from the epoch milliseconds themselves: adding the time since midnight to from_date would be
+            # local clock arithmetic, an hour out once the clocks change during the day
+            page_start = from_epoch_milliseconds(int(last_created), from_date.tzinfo)
         else:
             raise AgolDataError(f"login history from {from_date.isoformat()} still had new logins after "
                                 f"{MAX_HISTORY_REQUESTS} requests")
@@ -93,7 +95,17 @@ class ArcGISReportClient:
 
     @staticmethod
     def get_timestamp(single_datetime):
-        return int(single_datetime.timestamp() * 1e3)
+        """milliseconds since the epoch, in whole numbers (a float timestamp * 1000 can come out 1 ms low).
+        A naive datetime is local time, as datetime.timestamp() takes it."""
+        if single_datetime.tzinfo is None:
+            single_datetime = single_datetime.astimezone()
+        return calendar.timegm(single_datetime.utctimetuple()) * 1000 + single_datetime.microsecond // 1000
+
+
+def from_epoch_milliseconds(milliseconds: int, tz=None) -> datetime:
+    """the time AGOL's `created` value stands for, in tz (local time, naive, if tz is None)"""
+    seconds, remainder = divmod(milliseconds, 1000)
+    return datetime.fromtimestamp(seconds, tz).replace(microsecond=remainder * 1000)
 
 
 def history_window(single_date: datetime) -> tuple[datetime, datetime]:

@@ -56,8 +56,9 @@ logins = join_and_organize_logins(clean_agol_logins(history), pr_df)
   the same time the next day. It takes a timezone-aware `datetime`, including pendulum's;
   `get_datetime(date)` gives midnight Eastern.
 - AGOL returns at most 10,000 logins per request, oldest first. Asking for more doesn't help, and
-  the CSV format ignores `start`. So the client asks again from the time of the last login so far,
-  dropping the repeats, until a request brings nothing new. A normal day takes two requests. Busy
+  the CSV format ignores `start`. So the client asks again from the time of the last login so far
+  (its exact `created` value, so this holds on the days the clocks change), dropping the repeats,
+  until a request brings nothing new. A normal day takes two requests. Busy
   days do pass 10,000: on 2026-10-20 one account's ArcGIS Pro token requests did.
 - AGOL sends some errors, such as an invalid token, as JSON with HTTP 200 even when CSV was asked
   for. Those raise `AgolDataError` with AGOL's code and message. Others come back as HTTP errors.

@@ -5,8 +5,8 @@ import pandas as pd
 import pytest
 import requests
 
-from agol_analytics.agol.workflow import get_datetime
-from agol_analytics.utils.agol import AgolTokenError, ArcGISReportClient, history_window
+from agol_analytics.agol.workflow import EASTERN, get_datetime
+from agol_analytics.utils.agol import AgolTokenError, ArcGISReportClient, from_epoch_milliseconds, history_window
 from agol_analytics.validation import HISTORY_COLUMNS, AgolDataError
 from sample_data import FIXTURES_DIR, SAME_MILLISECOND_ROWS, FakeHttpResponse, load_login_history
 
@@ -144,16 +144,25 @@ def test_history_window_is_one_day_from_the_given_time():
 class CappedAgolApi(FakeAgolApi):
     """Like AGOL: the sample's logins in the requested window, oldest first, at most `cap` per request."""
 
-    def __init__(self, cap):
+    def __init__(self, cap, day="2026-10-21"):
         super().__init__()
         self.cap = cap
         self.history = pd.read_csv(FIXTURES_DIR / "agol_history_sample.csv").sort_values("created")
+        # the sample is from 2026-10-21; move it to another day at the same local clock times
+        new_date = get_datetime(day).date()
+        self.history["created"] = [
+            ArcGISReportClient.get_timestamp(from_epoch_milliseconds(created, EASTERN).replace(
+                year=new_date.year, month=new_date.month, day=new_date.day))
+            for created in self.history["created"]]
+        self.last_created_sent = []
 
     def get(self, url, params=None, **kwargs):
         self.gets.append((url, params))
         created = self.history["created"]
         in_window = self.history[(created >= params["fromDate"]) & (created < params["toDate"])]
-        return FakeHttpResponse(text=in_window.head(min(self.cap, params["num"])).to_csv(index=False))
+        page = in_window.head(min(self.cap, params["num"]))
+        self.last_created_sent.append(page["created"].max())
+        return FakeHttpResponse(text=page.to_csv(index=False))
 
 
 @pytest.mark.parametrize("cap", [68, 30, 7])
@@ -170,6 +179,33 @@ def test_a_day_over_the_per_request_limit_is_fetched_in_full(monkeypatch, cap):
     starts = [params["fromDate"] for _, params in api.gets]
     assert starts[0] == ArcGISReportClient.get_timestamp(get_datetime("2026-10-21"))
     assert starts[1:] == sorted(starts[1:]) and len(set(starts)) == len(starts)
+
+
+@pytest.mark.parametrize("day", ["2026-11-01",   # the clocks go back at 02:00
+                                 "2026-03-08"])  # and forward
+def test_paging_continues_from_the_last_login_on_days_the_clocks_change(monkeypatch, day):
+    import agol_analytics.utils.agol
+
+    api = CappedAgolApi(cap=7, day=day)
+    # the sample's logins run from 20:15 to 23:59, long after the change
+    monkeypatch.setattr(agol_analytics.utils.agol, "requests", api)
+
+    history = ArcGISReportClient().get_single_day_agol_logins(get_datetime(day))
+
+    assert sorted(history["reqId"]) == sorted(api.history["reqId"])
+    starts = [params["fromDate"] for _, params in api.gets]
+    assert starts[1:] == api.last_created_sent[:-1]
+
+
+@pytest.mark.parametrize("milliseconds", [1792555200000, 1792555200001, 1792598765432, 1792598765999])
+def test_epoch_milliseconds_survive_a_round_trip(milliseconds):
+    when = from_epoch_milliseconds(milliseconds, EASTERN)
+    assert ArcGISReportClient.get_timestamp(when) == milliseconds
+
+
+def test_get_timestamp_takes_a_naive_datetime_as_local_time():
+    naive = datetime(2026, 10, 21, 9, 30, 15, 123456)
+    assert ArcGISReportClient.get_timestamp(naive) == int(naive.timestamp() * 1000)
 
 
 def test_logins_sharing_the_last_millisecond_are_kept_once(monkeypatch):
