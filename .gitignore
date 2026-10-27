@@ -148,3 +148,6 @@ CLAUDE.local.md
 
 # probe output (scripts/probe_agol_history.py); raw/ holds real usernames
 tmp_data/
+
+# uv's lock file: this is a library, and the apps that install it (rt-analytics-airflow) lock its dependencies
+uv.lock
