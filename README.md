@@ -9,9 +9,13 @@ The rt-analytics-airflow `update_agol_logins` DAG uses this package's client and
 (see "Using the pieces" below).
 
 ## Installation
-`database-interface` isn't on PyPI, and this repo is private, so installing needs a GitHub SSH
-key with read access.
+Neither this package nor `database-interface` is on PyPI; both install from GitHub over HTTPS.
 
+- With pip, from another project (`database-interface` first, since pip would look for it on PyPI):
+  ```
+  pip install "database-interface @ git+https://github.com/Tufts-Technology-Services/analytics-database-interface.git"
+  pip install "agol-analytics @ git+https://github.com/Tufts-Technology-Services/agol-analytics.git@v0.3.0"
+  ```
 - With uv, the git sources in `pyproject.toml` are used:
   ```
   uv sync
