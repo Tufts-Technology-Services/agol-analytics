@@ -1,6 +1,6 @@
 [project]
 name = "agol-analytics"
-version = "0.2.0"
+version = "0.2.1"
 description = "collect ArcGIS Online usage metrics"
 authors = [
     {name="uuusta01", email="uku-kaspar.uustalu@tufts.edu"}, 

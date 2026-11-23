@@ -123,6 +123,10 @@ uv run pytest
 The sample data in `tests/fixtures/` is sanitized (pseudonymized usernames, IDs and IP
 addresses). Nothing in the tests reaches ArcGIS Online or a database.
 
+## Changes in 0.2.1
+- On the days the clocks change, paging past the 10,000-row cap no longer skips (in November) or
+  refetches (in March) an hour of logins: each request continues from the last login's exact time.
+
 ## Changes in 0.2.0
 - Days with more than 10,000 logins are fetched in full. Before, everything after the 10,000th
   login of a day was lost without a warning.
