@@ -9,15 +9,15 @@ The rt-analytics-airflow `update_agol_logins` DAG uses this package's client and
 (see "Using the pieces" below).
 
 ## Installation
-`database-interface` and `analytics-utils` aren't on PyPI, and `analytics-utils` (like this
-repo) is private, so installing needs a GitHub SSH key with read access.
+`database-interface` isn't on PyPI, and this repo is private, so installing needs a GitHub SSH
+key with read access.
 
 - With uv, the git sources in `pyproject.toml` are used:
   ```
   uv sync
   ```
   Projects that depend on agol-analytics need their own `[tool.uv.sources]` entries for
-  `agol-analytics`, `analytics-utils` and `database-interface`.
+  `agol-analytics` and `database-interface`.
 - With pip, install the git dependencies from `requirements.txt` first:
   ```
   pip install -r requirements.txt
@@ -29,10 +29,15 @@ Requires Python 3.11+ and pandas 2.1.2 or later (pandas 3 works).
 ## Usage
 Load everything that's missing, up to yesterday:
 ```python
+from datetime import date
 from database_interface import DatabaseInterface
 from agol_analytics import update_agol_logins
 
-update_agol_logins(DatabaseInterface(user, passwd, host=host), agol_user, agol_pass)
+dbi = DatabaseInterface(user, passwd, host=host)
+update_agol_logins(dbi, agol_user, agol_pass)
+
+# on an empty table, say where to start
+update_agol_logins(dbi, agol_user, agol_pass, first_day=date(2026, 9, 1))
 ```
 
 ### Using the pieces
@@ -109,9 +114,9 @@ All dates are Tufts local time (`America/New_York`, with daylight saving):
 - Creates the table if it doesn't exist, from `agol_analytics/sql/create_agol_logins.sql`. The SQL
   ships with the package and matches the production table. `request_id` is the primary key;
   `pr_identity_prid` is `CHAR(20)` and PR columns may be empty.
-- On the first run it starts at the start of the current semester (from `analytics_utils`); after
-  that, the day after the last stored `request_date`. It stops at yesterday, so a second run on
-  the same day fetches nothing.
+- Starts the day after the last stored `request_date`. On an empty table it starts at
+  `first_day`, and raises `ValueError` before fetching anything if that isn't given. It stops at
+  yesterday, so a second run on the same day fetches nothing.
 - Reads PR details from `pr_fis_vw` and appends the logins. Because `request_id` is the primary
   key, loading a day that's already stored fails rather than duplicating rows. (The Airflow DAG
   upserts instead.)
@@ -122,6 +127,11 @@ uv run pytest
 ```
 The sample data in `tests/fixtures/` is sanitized (pseudonymized usernames, IDs and IP
 addresses). Nothing in the tests reaches ArcGIS Online or a database.
+
+## Changes in 0.3.0
+- No longer depends on `analytics-utils`. On an empty table, `update_agol_logins` now starts at
+  the new `first_day` argument instead of the start of the current semester, and raises
+  `ValueError` without it.
 
 ## Changes in 0.2.1
 - On the days the clocks change, paging past the 10,000-row cap no longer skips (in November) or

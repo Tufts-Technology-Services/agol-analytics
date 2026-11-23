@@ -1,4 +1,3 @@
 pandas>=2.1.2
 requests>=2.31.0
 database-interface @ git+ssh://github.com/Tufts-Technology-Services/analytics-database-interface.git
-analytics-utils @ git+ssh://github.com/Tufts-Technology-Services/analytics-utils.git

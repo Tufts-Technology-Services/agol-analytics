@@ -1,5 +1,4 @@
 from database_interface import DatabaseInterface
-from analytics_utils import get_semester_start
 from datetime import date, timedelta
 import os
 
@@ -33,7 +32,14 @@ def get_login_data(agol_user:str, agol_pass:str, dates: list) -> list:
     return login_data
 
 
-def update_agol_logins(db_interface: DatabaseInterface, agol_user:str, agol_pass:str) -> None:
+def update_agol_logins(db_interface: DatabaseInterface, agol_user: str, agol_pass: str,
+                       first_day: date | None = None) -> None:
+    """
+    Load every day from the one after the last stored request_date up to yesterday.
+
+    :param first_day: where to start when agol_logins is empty; ignored once it has rows. Required
+        on an empty table.
+    """
     ensure_table(db_interface)
 
     pr_table = 'pr_fis_vw'
@@ -41,17 +47,13 @@ def update_agol_logins(db_interface: DatabaseInterface, agol_user:str, agol_pass
     date_field = 'request_date'
 
     today = date.today()
-    start_date = get_semester_start(today)
-    """
-    for historical values:
-    start_date = '2021-07-01'
-    end_date = '2021-12-31'
-    pr_table = 'pr_fis_2021spring'
-    """
-
     last_stored_date = db_interface.check_last_date(date_field, agol_table)
     if last_stored_date is not None:
         start_date = last_stored_date + timedelta(days=1)
+    elif first_day is not None:
+        start_date = first_day
+    else:
+        raise ValueError(f'{agol_table} is empty: pass first_day, the first day to load')
 
     end_date = today - timedelta(days=1)
 
