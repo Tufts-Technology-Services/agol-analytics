@@ -1,6 +1,6 @@
 [project]
 name = "agol-analytics"
-version = "0.2.1"
+version = "0.3.0"
 description = "collect ArcGIS Online usage metrics"
 authors = [
     {name="uuusta01", email="uku-kaspar.uustalu@tufts.edu"}, 
@@ -10,15 +10,13 @@ dependencies = [
     "pandas>=2.1.2",
     "requests>=2.30.0",
     "database-interface",
-    "analytics-utils",
     ]
 requires-python = "~=3.11"
 
-# not on PyPI. Projects that depend on agol-analytics declare their own sources for these
-# (see rt-analytics-airflow); pip users install them from requirements.txt.
+# not on PyPI. Projects that depend on agol-analytics declare their own source for it
+# (see rt-analytics-airflow); pip users install it from requirements.txt.
 [tool.uv.sources]
 database-interface = { git = "https://github.com/Tufts-Technology-Services/analytics-database-interface.git" }
-analytics-utils = { git = "ssh://git@github.com/Tufts-Technology-Services/analytics-utils.git" }
 
 [dependency-groups]
 dev = ["pytest"]
