@@ -64,25 +64,40 @@ def agol_client(monkeypatch):
     return FakeReportClient
 
 
-def run_on(monkeypatch, today: date, db: FakeAgolDatabase):
+def run_on(monkeypatch, today: date, db: FakeAgolDatabase, first_day: date | None = None):
     class FrozenDate(date):
         @classmethod
         def today(cls):
             return today
 
     monkeypatch.setattr(update_module, "date", FrozenDate)
-    update_agol_logins(db, "EXAMPLE-user", "EXAMPLE-placeholder")
+    update_agol_logins(db, "EXAMPLE-user", "EXAMPLE-placeholder", first_day=first_day)
 
 
 def days_requested():
     return [d.date() for client in FakeReportClient.instances for d in client.days_requested]
 
 
-def test_first_run_starts_at_the_semester_start(monkeypatch, agol_client):
-    run_on(monkeypatch, date(2026, 10, 22), FakeAgolDatabase(last_stored_date=None))
+def test_first_run_starts_at_first_day(monkeypatch, agol_client):
+    run_on(monkeypatch, date(2026, 10, 22), FakeAgolDatabase(last_stored_date=None),
+           first_day=date(2026, 9, 1))
 
     requested = days_requested()
     assert (requested[0], requested[-1], len(requested)) == (date(2026, 9, 1), SAMPLE_DAY, 51)
+
+
+def test_first_run_without_first_day_raises_before_fetching(monkeypatch, agol_client):
+    db = FakeAgolDatabase(last_stored_date=None)
+    with pytest.raises(ValueError, match="agol_logins is empty: pass first_day"):
+        run_on(monkeypatch, date(2026, 10, 22), db)
+    assert FakeReportClient.instances == []
+    assert db.appended == []
+
+
+def test_first_day_is_ignored_once_the_table_has_rows(monkeypatch, agol_client):
+    run_on(monkeypatch, date(2026, 10, 22), FakeAgolDatabase(last_stored_date=date(2026, 10, 19)),
+           first_day=date(2026, 9, 1))
+    assert days_requested() == [date(2026, 10, 20), SAMPLE_DAY]
 
 
 def test_later_runs_start_after_the_last_stored_day(monkeypatch, agol_client):
