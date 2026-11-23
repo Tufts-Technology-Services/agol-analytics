@@ -13,8 +13,16 @@ HISTORY_ROW_LIMIT = 10000
 # a day takes a request per HISTORY_ROW_LIMIT logins, plus one; busy days have had more than 10,000
 MAX_HISTORY_REQUESTS = 20
 
+# seconds to wait for a reply to a scheduled-task request
+TASK_REQUEST_TIMEOUT = 60
+
+
 class AgolTokenError(Exception):
     """ArcGIS Online didn't issue a token, e.g. because the credentials were rejected."""
+
+
+class AgolRequestError(Exception):
+    """ArcGIS Online answered a request with an error, e.g. a task that doesn't exist or can't be read."""
 
 
 class ArcGISReportClient:
@@ -92,6 +100,29 @@ class ArcGISReportClient:
         r = requests.get(endpoint, params=params)
         r.raise_for_status()
         return r
+
+    def get_scheduled_task(self, owner: str, task_id: str) -> dict:
+        """a scheduled task (e.g. a notebook's), as AGOL describes it: active, taskState, cronSchedule..."""
+        return self.request_task_json(owner, task_id)
+
+    def get_scheduled_task_runs(self, owner: str, task_id: str) -> list[dict]:
+        """the runs AGOL keeps for a scheduled task (a limited history), in no guaranteed order"""
+        return self.request_task_json(owner, task_id, 'runs').get('runs', [])
+
+    def request_task_json(self, owner: str, task_id: str, *subpath: str) -> dict:
+        """a JSON reply from community/users/<owner>/tasks/<task_id>[/subpath]. AGOL reports errors such as
+        an unknown task or a token without access as HTTP 200 with {"error": ...}: those raise AgolRequestError"""
+        endpoint = path.join(self.api_base, 'community/users', owner, 'tasks', task_id, *subpath)
+        r = requests.get(endpoint, params={'f': 'json', 'token': self.token}, timeout=TASK_REQUEST_TIMEOUT)
+        r.raise_for_status()
+        resp = r.json()
+        if 'error' in resp:
+            error = resp['error'] if isinstance(resp['error'], dict) else {}
+            parts = [str(error.get('code', '')), str(error.get('message', 'an error reply'))]
+            parts += [str(detail) for detail in error.get('details') or []]
+            reason = '; '.join(part for part in parts if part)
+            raise AgolRequestError(f"ArcGIS Online couldn't return task {task_id} of {owner}: {reason}")
+        return resp
 
     @staticmethod
     def get_timestamp(single_datetime):

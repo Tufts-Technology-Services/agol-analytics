@@ -3,7 +3,8 @@
 ## Description
 Part of RT Analytics. Collects ArcGIS Online (AGOL) login history for the Tufts portal
 (tuftsgis.maps.arcgis.com), adds each user's PR details, and stores the result in the
-`agol_logins` table of the rt_analytics database.
+`agol_logins` table of the rt_analytics database. It can also check that a scheduled task, such as
+a notebook's, is active and running successfully.
 
 The rt-analytics-airflow `update_agol_logins` DAG uses this package's client and functions
 (see "Using the pieces" below).
@@ -14,7 +15,7 @@ Neither this package nor `database-interface` is on PyPI; both install from GitH
 - With pip, from another project (`database-interface` first, since pip would look for it on PyPI):
   ```
   pip install "database-interface @ git+https://github.com/Tufts-Technology-Services/analytics-database-interface.git"
-  pip install "agol-analytics @ git+https://github.com/Tufts-Technology-Services/agol-analytics.git@v0.3.0"
+  pip install "agol-analytics @ git+https://github.com/Tufts-Technology-Services/agol-analytics.git@v0.4.0"
   ```
 - With uv, the git sources in `pyproject.toml` are used:
   ```
@@ -95,6 +96,28 @@ does the Airflow DAG's extract task.
 `scripts/probe_agol_history.py` checks these assumptions against the live portal (see its
 docstring). Its summary is safe to share; its `raw/` folder isn't.
 
+### Scheduled tasks (`agol_analytics.notebook_tasks`)
+```python
+from datetime import datetime, timedelta, timezone
+from agol_analytics.notebook_tasks import notebook_task_problems
+
+task = client.get_scheduled_task(owner, task_id)
+runs = client.get_scheduled_task_runs(owner, task_id)
+problems = notebook_task_problems(task, runs, datetime.now(timezone.utc),
+                                  max_age=timedelta(hours=26), max_runtime=timedelta(hours=1))
+```
+- `get_scheduled_task` and `get_scheduled_task_runs` read
+  `community/users/<owner>/tasks/<task_id>` and its `/runs`. `owner` is the user who scheduled the
+  task, which need not be the account the token is for, but that account must be allowed to read
+  the task. AGOL's error replies (HTTP 200 with an error body) raise `AgolRequestError`.
+- `notebook_task_problems` lists, in words, every way the task isn't healthy; empty means it is.
+  It's healthy if `active` is true and `taskState` is `active`, and the newest run that has had
+  time to finish succeeded and started within `max_age`. Runs started within `max_runtime` are
+  left out unless they've already succeeded, so a run still going isn't taken for a failure; one
+  going longer than that is reported with its status.
+- AGOL documents only one run status, `succeeded`; any other counts as not succeeded. AGOL keeps
+  only a limited run history, and pauses a task after repeated failed runs.
+
 ### Dates
 All dates are Tufts local time (`America/New_York`, with daylight saving):
 - `request_date` is the Eastern date of the login, so a login at 00:30 EDT belongs to that day,
@@ -131,6 +154,10 @@ uv run pytest
 ```
 The sample data in `tests/fixtures/` is sanitized (pseudonymized usernames, IDs and IP
 addresses). Nothing in the tests reaches ArcGIS Online or a database.
+
+## Changes in 0.4.0
+- Checks scheduled tasks: `ArcGISReportClient.get_scheduled_task`, `get_scheduled_task_runs` and
+  `agol_analytics.notebook_tasks` (see "Scheduled tasks").
 
 ## Changes in 0.3.0
 - No longer depends on `analytics-utils`. On an empty table, `update_agol_logins` now starts at
