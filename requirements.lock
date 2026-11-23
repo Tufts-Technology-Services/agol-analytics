@@ -1,6 +1,6 @@
 certifi==2024.7.4
 charset-normalizer==3.3.2
-database-interface @ git+ssh://git@github.com/Tufts-Technology-Services/analytics-database-interface.git@ee3ffcf46a2770abb2e03676def3cf9ab1772f7f
+database-interface @ git+https://github.com/Tufts-Technology-Services/analytics-database-interface.git@ee3ffcf46a2770abb2e03676def3cf9ab1772f7f
 idna==3.7
 iniconfig==2.0.0
 numpy==1.26.4
